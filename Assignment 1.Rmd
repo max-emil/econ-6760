@@ -1,0 +1,89 @@
+---
+title: "ECON 6760 - Assignment 1"
+author: "Joe Martin"
+date: "1/17/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(pacman, tidyverse, tidymodels, lubridate, here, tidytuesdayR)
+
+#Get the Data
+
+# Read in with tidytuesdayR package 
+# Install from CRAN via: install.packages("tidytuesdayR")
+# This loads the readme and all the datasets for the week of interest
+
+# Either ISO-8601 date or year/week works!
+
+#tuesdata <- tidytuesdayR::tt_load('2022-01-11')
+#tuesdata <- tidytuesdayR::tt_load(2022, week = 2)
+
+#colony <- tuesdata$colony
+
+# Or read in the data manually
+
+colony <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/colony.csv')
+stressor <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/stressor.csv')
+
+months <- data.frame(month_name = c("January","April","July", "October"), month_num = c(1,2,3,4))
+
+# Create a new variable to display "Months" as "QUARTERS" 
+colony <- colony %>% 
+  separate(col = months,into = c("first_m","last_m"), sep = "-")
+colony$ym <- paste(colony$year,colony$first_m, sep = "-")
+colony$ym <- ym(colony$ym)
+colony$quarter <- quarter(colony$ym)
+```
+
+Explore the data. For reference, this is the meaning for variables:
+
+colony_n: Number of colonies
+colony_max: Maximum colonies
+colony_lost: Colonies lost
+colony_lost_pct: Percent of total colonies lost
+colony_added: Colonies added
+colony_reno: Colonies renovated
+colony_reno_pct: Percent of colonies renovated
+```{r}
+# How many colonies were lost over time in Georgia
+colony %>%
+  filter(state == "Georgia") %>%
+  ggplot(aes(x=ym, y = colony_lost))+
+  geom_smooth()
+```
+
+```{r}
+# Try using a natural log scale 
+colony %>%
+  filter(state == "Georgia") %>%
+  ggplot(aes(x = ym, y = log10(colony_lost)))+
+  geom_smooth()
+```
+
+```{r, include=FALSE}
+# Download the monthly data series CPIAUCSL, the seasonally adjusted consumer price index for all urban consumers in the US, from the St. Louis Fed Data Base (FRED).
+cpia <- read_csv("~/MSBA/Spring 2022/ECON 6760/econ-6760/CPIAUCSL.csv")
+cpia$month <- lubridate::month(cpia$DATE)
+cpia$year <- lubridate::year(cpia$DATE)
+cpia$quarter <- lubridate::quarter(cpia$DATE)
+cpia$ln_CPIA <- log10(cpia$CPIAUCSL) #Transform to natural log scale
+cpia$first_diff <- diff(cpia$ln_CPIA)
+```
+
+```{r}
+# Show plot as it appears on FRED website (https://fred.stlouisfed.org/series/CPIAUCSL)
+cpia %>%
+  ggplot(aes(x = year, y = CPIAUCSL))+
+  geom_smooth(se = FALSE)+
+  scale_x_continuous(breaks = seq(1950,2021, by = 5))
+  
+```
+
+```{r}
+# natural log scale
+cpia %>%
+  ggplot(aes(x = year, y = ln_CPIA))+
+  geom_smooth(se = FALSE)+
+  scale_x_continuous(breaks = seq(1950,2021, by = 5))
+```
