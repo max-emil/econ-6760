@@ -47,6 +47,28 @@ colony_reno: Colonies renovated
 colony_reno_pct: Percent of colonies renovated
 ```{r}
 # How many colonies were lost over time in Georgia
+ts_colony_ny <- colony %>%
+  filter(state == "New York") %>%
+  select(ym,colony_n)
+
+ts_colony_ga <- colony %>%
+  filter(state == "Georgia") %>%
+  select(ym,colony_n)
+
+ts_colony_ny <- ts(ts_colony_ny)
+ts_colony_ga <- ts(ts_colony_ga)
+
+plot(ts_colony_ga)
+plot(ts_colony_ny)
+```
+Although this is not economic data, this dataset is recorded quarterly. This is interesting because it is possible to see seasonal population trends. For example, filtering for colony numbers in Georgia, it is less clear how colony numbers are affected by weather, likely due to milder autumns and winters. However, when filtering for a state like New York where there are more dramatic changes in seasonal temperatures, it is clear that populations increase and decrease depending on the season.
+
+```{r}
+# Is this enough? Should I create a larger dataset for the whole US and see write about those trends?
+```
+
+```{r}
+
 colony %>%
   filter(state == "Georgia") %>%
   ggplot(aes(x=ym, y = colony_lost))+
@@ -68,7 +90,7 @@ cpia$month <- lubridate::month(cpia$DATE)
 cpia$year <- lubridate::year(cpia$DATE)
 cpia$quarter <- lubridate::quarter(cpia$DATE)
 cpia$ln_CPIA <- log10(cpia$CPIAUCSL) #Transform to natural log scale
-cpia$first_diff <- diff(cpia$ln_CPIA)
+#cpia$first_diff <- diff(cpia$ln_CPIA)
 ```
 
 ```{r}
@@ -86,4 +108,15 @@ cpia %>%
   ggplot(aes(x = year, y = ln_CPIA))+
   geom_smooth(se = FALSE)+
   scale_x_continuous(breaks = seq(1950,2021, by = 5))
+```
+
+```{r}
+ts_cpia <- cpia %>%
+  select(DATE,CPIAUCSL)
+
+ts_cpia <- ts(ts_cpia)
+
+plot(diff(log10(ts_cpia)))
+
+plot(ts_cpia)
 ```
