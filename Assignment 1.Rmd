@@ -45,6 +45,7 @@ colony_lost_pct: Percent of total colonies lost
 colony_added: Colonies added
 colony_reno: Colonies renovated
 colony_reno_pct: Percent of colonies renovated
+
 ```{r}
 # How many colonies were lost over time in Georgia
 ts_colony_ny <- colony %>%
@@ -64,7 +65,20 @@ plot(ts_colony_ny)
 Although this is not economic data, this dataset is recorded quarterly. This is interesting because it is possible to see seasonal population trends. For example, filtering for colony numbers in Georgia, it is less clear how colony numbers are affected by weather, likely due to milder autumns and winters. However, when filtering for a state like New York where there are more dramatic changes in seasonal temperatures, it is clear that populations increase and decrease depending on the season.
 
 ```{r}
-# Is this enough? Should I create a larger dataset for the whole US and see write about those trends?
+#All of US
+
+ts_colony_usa <- colony %>% 
+  filter(state == "United States") %>%
+  select(ym,colony_n)
+
+ts_colony_usa1 <- ts(ts_colony_usa)
+
+plot(log10(ts_colony_usa1))
+
+#using ggplot
+ts_colony_usa %>%
+  ggplot(aes(x = ym, y = log10(colony_n)))+
+  geom_line()
 ```
 
 ```{r}
